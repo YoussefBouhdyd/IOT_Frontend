@@ -1,98 +1,273 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Switch,
+  TouchableOpacity,
+} from "react-native";
+import { useContext, useState } from "react";
+import { useRouter } from "expo-router";
+import { AuthContext } from "../../context/AuthContext";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function Dashboard() {
+  const { logout } = useContext(AuthContext);
+  const router = useRouter();
 
-export default function HomeScreen() {
+  const [modeNormal, setModeNormal] = useState(true);
+  const [modeNuit, setModeNuit] = useState(false);
+  const [modeEnfants, setModeEnfants] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    router.replace("/auth/login");
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      
+      {/* Top Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>🏠 ADCP</Text>
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={22} color="#fff" />
+        </TouchableOpacity>
+      </View>
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      {/* Welcome / Temperature */}
+      <View style={styles.welcome}>
+        <View>
+          <Text style={styles.temp}>27°</Text>
+          <Text style={styles.subtitle}>Welcome to your Smart Home</Text>
+        </View>
+        <TouchableOpacity style={styles.profile}>
+          <Ionicons name="person" size={22} color="#fff" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Rooms */}
+      <Text style={styles.sectionTitle}>All Rooms</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <RoomCard title="Living Room" temp="27°" />
+        <RoomCard title="Kitchen" temp="26°" />
+        <RoomCard title="Bedroom" temp="24°" />
+      </ScrollView>
+
+      {/* Devices */}
+      <Text style={styles.sectionTitle}>Devices</Text>
+      <View style={styles.devicesRow}>
+        <Device icon="wifi" label="WiFi" />
+        <Device icon="lightbulb" label="Light" />
+        <Device icon="thermostat" label="Temp" />
+        <Device icon="fan" label="Fan" />
+      </View>
+
+      {/* Modes */}
+      <Text style={styles.sectionTitle}>Modes</Text>
+
+      <ModeCard
+        icon="home-outline"
+        title="Mode Normal"
+        description="Température, humidité, gaz"
+        value={modeNormal}
+        onChange={setModeNormal}
+      />
+
+      <ModeCard
+        icon="moon-outline"
+        title="Mode Nuit"
+        description="Surveillance nocturne"
+        value={modeNuit}
+        onChange={setModeNuit}
+      />
+
+      <ModeCard
+        icon="happy-outline"
+        title="Mode Enfants"
+        description="Sécurité des portes"
+        value={modeEnfants}
+        onChange={setModeEnfants}
+      />
+    </ScrollView>
+  );
+}
+function RoomCard({ title, temp }) {
+  return (
+    <View style={styles.roomCard}>
+      <Text style={styles.roomTitle}>{title}</Text>
+      <Text style={styles.roomTemp}>{temp}</Text>
+
+      <View style={styles.roomFooter}>
+        <Ionicons name="bulb" size={18} color="#fff" />
+        <Ionicons name="wifi" size={18} color="#fff" />
+        <Ionicons name="thermometer" size={18} color="#fff" />
+      </View>
+    </View>
   );
 }
 
+function Device({ icon, label }) {
+  return (
+    <TouchableOpacity style={styles.device}>
+      <MaterialIcons name={icon} size={26} color="#fff" />
+      <Text style={styles.deviceText}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+function ModeCard({ icon, title, description, value, onChange }) {
+  return (
+    <View style={styles.modeCard}>
+      <View style={styles.modeLeft}>
+        <View style={styles.iconBox}>
+          <Ionicons name={icon} size={22} color="#fff" />
+        </View>
+        <View>
+          <Text style={styles.modeTitle}>{title}</Text>
+          <Text style={styles.modeDesc}>{description}</Text>
+        </View>
+      </View>
+      <Switch value={value} onValueChange={onChange} />
+    </View>
+  );
+}
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#EFEAE6",
+    padding: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+
+  title: {
+    fontSize: 22,
+    fontWeight: "600",
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+
+  text: {
+    fontSize: 16,
+  },
+
+  logoutBtn: {
+    backgroundColor: "#C8A27C",
+    padding: 10,
+    borderRadius: 12,
+  },
+
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+
+  welcome: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 25,
+  },
+
+  temp: {
+    fontSize: 36,
+    fontWeight: "bold",
+  },
+
+  subtitle: {
+    color: "#666",
+  },
+
+  profile: {
+    backgroundColor: "#C8A27C",
+    padding: 10,
+    borderRadius: 50,
+  },
+
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginVertical: 15,
+  },
+
+  roomCard: {
+    width: 220,
+    height: 260,
+    backgroundColor: "#BFA38A",
+    borderRadius: 30,
+    padding: 20,
+    marginRight: 15,
+    justifyContent: "space-between",
+  },
+
+  roomTitle: {
+    fontSize: 20,
+    color: "#fff",
+    fontWeight: "600",
+  },
+
+  roomTemp: {
+    fontSize: 28,
+    color: "#fff",
+  },
+
+  roomFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: 90,
+  },
+
+  devicesRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  device: {
+    width: 70,
+    height: 70,
+    backgroundColor: "#C8A27C",
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  deviceText: {
+    color: "#fff",
+    fontSize: 12,
+    marginTop: 4,
+  },
+
+  modeCard: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 14,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  modeLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  iconBox: {
+    backgroundColor: "#C8A27C",
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+
+  modeTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  modeDesc: {
+    fontSize: 13,
+    color: "#777",
   },
 });
