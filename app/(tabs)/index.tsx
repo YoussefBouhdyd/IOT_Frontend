@@ -41,17 +41,20 @@ export default function Dashboard() {
           <Text style={styles.temp}>27°</Text>
           <Text style={styles.subtitle}>Welcome to your Smart Home</Text>
         </View>
-        <TouchableOpacity style={styles.profile}>
-          <Ionicons name="person" size={22} color="#fff" />
+        <TouchableOpacity
+          style={styles.profile}
+          onPress={() => router.push("/profile")}
+          >
+            <Ionicons name="person" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
 
       {/* Rooms */}
       <Text style={styles.sectionTitle}>All Rooms</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <RoomCard title="Living Room" temp="27°" />
-        <RoomCard title="Kitchen" temp="26°" />
-        <RoomCard title="Bedroom" temp="24°" />
+        <RoomCard id="living" title="Living Room" temp="27°" />
+        <RoomCard id="kitchen" title="Kitchen" temp="26°" />
+        <RoomCard id="bedroom" title="Bedroom" temp="24°" />
       </ScrollView>
 
       {/* Devices */}
@@ -92,25 +95,33 @@ export default function Dashboard() {
     </ScrollView>
   );
 }
-function RoomCard({ title, temp }) {
+function RoomCard({ id, title, temp }) {
+  const router = useRouter();
+
   return (
-    <View style={styles.roomCard}>
+    <TouchableOpacity
+      style={styles.roomCard}
+      onPress={() => router.push(`/room/${id}`)}
+    >
       <Text style={styles.roomTitle}>{title}</Text>
       <Text style={styles.roomTemp}>{temp}</Text>
 
       <View style={styles.roomFooter}>
-        <Ionicons name="bulb" size={18} color="#fff" />
-        <Ionicons name="wifi" size={18} color="#fff" />
         <Ionicons name="thermometer" size={18} color="#fff" />
+        <Ionicons name="wifi" size={18} color="#fff" />
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
 function Device({ icon, label }) {
   return (
     <TouchableOpacity style={styles.device}>
-      <MaterialIcons name={icon} size={26} color="#fff" />
+      {icon === "fan" ? (
+        <Ionicons name="fan-outline" size={26} color="#fff" />
+      ) : (
+        <MaterialIcons name={icon} size={26} color="#fff" />
+      )}
       <Text style={styles.deviceText}>{label}</Text>
     </TouchableOpacity>
   );
