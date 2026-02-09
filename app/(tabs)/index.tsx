@@ -9,12 +9,13 @@ import {
 import { useContext, useState } from "react";
 import { useRouter } from "expo-router";
 import { AuthContext } from "../../context/AuthContext";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 
 export default function Dashboard() {
   const { logout } = useContext(AuthContext);
   const router = useRouter();
 
+  // ✅ States séparés
   const [modeNormal, setModeNormal] = useState(true);
   const [modeNuit, setModeNuit] = useState(false);
   const [modeEnfants, setModeEnfants] = useState(false);
@@ -27,7 +28,7 @@ export default function Dashboard() {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       
-      {/* Top Header */}
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>🏠 ADCP</Text>
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
@@ -35,7 +36,7 @@ export default function Dashboard() {
         </TouchableOpacity>
       </View>
 
-      {/* Welcome / Temperature */}
+      {/* Welcome */}
       <View style={styles.welcome}>
         <View>
           <Text style={styles.temp}>27°</Text>
@@ -44,8 +45,8 @@ export default function Dashboard() {
         <TouchableOpacity
           style={styles.profile}
           onPress={() => router.push("/profile")}
-          >
-            <Ionicons name="person" size={22} color="#fff" />
+        >
+          <Ionicons name="person" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
 
@@ -70,6 +71,7 @@ export default function Dashboard() {
       <Text style={styles.sectionTitle}>Modes</Text>
 
       <ModeCard
+        type="normal"
         icon="home-outline"
         title="Mode Normal"
         description="Température, humidité, gaz"
@@ -78,6 +80,7 @@ export default function Dashboard() {
       />
 
       <ModeCard
+        type="nuit"
         icon="moon-outline"
         title="Mode Nuit"
         description="Surveillance nocturne"
@@ -86,9 +89,10 @@ export default function Dashboard() {
       />
 
       <ModeCard
+        type="enfants"
         icon="happy-outline"
         title="Mode Enfants"
-        description="Sécurité des portes"
+        description="Sécurité des enfants"
         value={modeEnfants}
         onChange={setModeEnfants}
       />
@@ -113,12 +117,11 @@ function RoomCard({ id, title, temp }) {
     </TouchableOpacity>
   );
 }
-
 function Device({ icon, label }) {
   return (
     <TouchableOpacity style={styles.device}>
       {icon === "fan" ? (
-        <Ionicons name="fan-outline" size={26} color="#fff" />
+        <FontAwesome5 name="fan" size={24} color="#fff" />
       ) : (
         <MaterialIcons name={icon} size={26} color="#fff" />
       )}
@@ -126,10 +129,15 @@ function Device({ icon, label }) {
     </TouchableOpacity>
   );
 }
+function ModeCard({ type, icon, title, description, value, onChange }) {
+  const router = useRouter();
 
-function ModeCard({ icon, title, description, value, onChange }) {
   return (
-    <View style={styles.modeCard}>
+    <TouchableOpacity
+      style={styles.modeCard}
+      onPress={() => router.push(`/mode/${type}`)}
+      activeOpacity={0.8}
+    >
       <View style={styles.modeLeft}>
         <View style={styles.iconBox}>
           <Ionicons name={icon} size={22} color="#fff" />
@@ -140,9 +148,10 @@ function ModeCard({ icon, title, description, value, onChange }) {
         </View>
       </View>
       <Switch value={value} onValueChange={onChange} />
-    </View>
+    </TouchableOpacity>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
