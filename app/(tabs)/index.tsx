@@ -6,10 +6,21 @@ import {
   Switch,
   TouchableOpacity,
 } from "react-native";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect, useCallback } from "react";
 import { useRouter } from "expo-router";
 import { AuthContext } from "../../context/AuthContext";
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
+import * as Notifications from "expo-notifications";
+
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function Dashboard() {
   const { logout } = useContext(AuthContext);
@@ -22,8 +33,25 @@ export default function Dashboard() {
 
   const handleLogout = () => {
     logout();
-    router.replace("/auth/login");
+    router.replace("/auth/login"); 
   };
+
+  useEffect(() => {
+    async function requestPermission() {
+    const settings = await Notifications.getPermissionsAsync();
+    if (!settings.granted) {
+      await Notifications.requestPermissionsAsync();
+    }
+    }
+    requestPermission();
+  }, []);
+  const sendNotification = useCallback(async (title, body) => {
+    await Notifications.scheduleNotificationAsync({
+      content: { title, body },
+      trigger: null,
+    });
+  }, []);
+
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -76,7 +104,15 @@ export default function Dashboard() {
         title="Mode Normal"
         description="Température, humidité, gaz"
         value={modeNormal}
-        onChange={setModeNormal}
+        onChange={(value) => {
+          setModeNormal(value);
+          if (value) {
+            sendNotification(
+              "🏠 Mode Normal activé",
+              "Le mode normal de la maison est activé"
+            );
+          }
+        }}
       />
 
       <ModeCard
@@ -85,8 +121,23 @@ export default function Dashboard() {
         title="Mode Nuit"
         description="Surveillance nocturne"
         value={modeNuit}
-        onChange={setModeNuit}
+        onChange={(value) => {
+          setModeNuit(value);
+
+          if (value) {
+            sendNotification(
+             "🌙 Mode Nuit activé",
+              "La surveillance nocturne est maintenant active"
+            );
+          } else {
+          sendNotification(
+          "☀️ Mode Nuit désactivé",
+          "Le mode nuit a été désactivé"
+          );
+          }
+        }}
       />
+
 
       <ModeCard
         type="enfants"
@@ -94,11 +145,19 @@ export default function Dashboard() {
         title="Mode Enfants"
         description="Sécurité des enfants"
         value={modeEnfants}
-        onChange={setModeEnfants}
+        onChange={(value) => {
+          setModeEnfants(value);
+          if (value) {
+            sendNotification(
+            "🧒 Mode Enfants activé",
+            "La sécurité enfants est maintenant active"
+            );
+          }
+        }}
       />
     </ScrollView>
   );
-}
+};
 function RoomCard({ id, title, temp }) {
   const router = useRouter();
 
