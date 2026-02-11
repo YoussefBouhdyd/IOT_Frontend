@@ -4,89 +4,156 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  TouchableOpacity,
+  Switch,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { LineChart } from "react-native-chart-kit";
 import * as Notifications from "expo-notifications";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function RoomHistory() {
-  const { id } = useLocalSearchParams();
+  const { id, modeNuit } = useLocalSearchParams();
+  const isNightMode = modeNuit === "on";
 
-  // 🔹 Mock data
   const temperatureData = [22, 24, 26, 29, 30, 28, 27];
   const gasData = [10, 12, 14, 16, 18, 15, 13];
 
-  // 🔹 Thresholds
   const TEMP_THRESHOLD = 28;
   const GAS_THRESHOLD = 15;
 
-  // 🔹 Alerts logic
   const isTempAlert = Math.max(...temperatureData) > TEMP_THRESHOLD;
   const isGasAlert = Math.max(...gasData) > GAS_THRESHOLD;
 
-  const chartColor = isTempAlert || isGasAlert ? "#E53935" : "#C8A27C";
+  const [climOn, setClimOn] = useState(false);
+  const [lightOn, setLightOn] = useState(true);
+  const [windowOpen, setWindowOpen] = useState(false);
+  const [targetTemp, setTargetTemp] = useState(22);
+  const currentTemp = 18;
+
+  const sendNotification = async (title: string, body: string) => {
+    await Notifications.scheduleNotificationAsync({
+      content: { title, body },
+      trigger: null,
+    });
+  };
+
+  useEffect(() => {
+    if (isTempAlert) setClimOn(true);
+    if (isGasAlert) setWindowOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (isNightMode) {
+      setLightOn(false);
+    } else {
+      setLightOn(true);
+    }
+  }, [isNightMode]);
 
   const chartConfig = {
     backgroundColor: "#fff",
     backgroundGradientFrom: "#fff",
     backgroundGradientTo: "#fff",
     decimalPlaces: 0,
-    color: () => chartColor,
+    color: () => "#C8A27C",
     labelColor: () => "#777",
   };
 
-  // 🔔 Notifications (INSIDE COMPONENT ✅)
-  useEffect(() => {
-    async function sendNotification(title, body) {
-      await Notifications.scheduleNotificationAsync({
-        content: { title, body },
-        trigger: null,
-      });
-    }
-
-    if (isTempAlert) {
-      sendNotification(
-        "⚠️ Température élevée",
-        "La température a dépassé le seuil dans cette pièce"
-      );
-    }
-
-    if (isGasAlert) {
-      sendNotification(
-        "🚨 Gaz détecté",
-        "Niveau de gaz dangereux détecté dans cette pièce"
-      );
-    }
-  }, []); // once on mount
-
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>
-        Historique – {id?.toString().toUpperCase()}
-      </Text>
+      <Text style={styles.title}>Historique – {id}</Text>
 
-      {/* 🔔 Alerts UI */}
       {isTempAlert && (
-        <View style={styles.alertBoxWarning}>
-          <Text style={styles.alertText}>
-            ⚠️ Température élevée détectée dans cette pièce
-          </Text>
+        <View style={styles.alertWarning}>
+          <Text>⚠️ Température élevée détectée</Text>
         </View>
       )}
 
       {isGasAlert && (
-        <View style={styles.alertBoxDanger}>
-          <Text style={styles.alertText}>
-            🚨 Niveau de gaz dangereux détecté
-          </Text>
+        <View style={styles.alertDanger}>
+          <Text>🚨 Niveau de gaz dangereux détecté</Text>
         </View>
       )}
 
-      {/* 📈 Température Graph */}
-      <Text style={styles.subtitle}>Température (°C)</Text>
+      <View style={styles.mainCard}>
+
+        <Text style={styles.sectionTitle}>
+          Actions automatiques & manuelles
+        </Text>
+
+        {/* 🌡️ CLIMAT */}
+        <View style={styles.climatCard}>
+          <View style={styles.rowBetween}>
+            <Text style={styles.cardTitle}>🌡️ Climat</Text>
+            <Switch value={climOn} onValueChange={setClimOn} />
+          </View>
+
+          <View style={styles.tempControl}>
+            <TouchableOpacity onPress={() => setTargetTemp(t => t - 1)}>
+              <Text style={styles.tempBtn}>−</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.tempValue}>{targetTemp}°</Text>
+
+            <TouchableOpacity onPress={() => setTargetTemp(t => t + 1)}>
+              <Text style={styles.tempBtn}>+</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.rowBetween}>
+            <Text style={styles.smallText}>ACTUEL 18°C</Text>
+            <Text style={styles.smallText}>
+              STATUS {climOn ? "HEATING" : "OFF"}
+            </Text>
+          </View>
+        </View>
+
+        {/* 💡 LUMIERE */}
+        <View style={styles.simpleCard}>
+          <View style={styles.rowBetween}>
+            <Text style={styles.cardTitle}>💡 Lumière</Text>
+
+            <TouchableOpacity
+              style={[
+                styles.controlBtn,
+                { backgroundColor: lightOn ? "#6E5B4A" : "#3C3C3C" }
+              ]}
+              onPress={() => setLightOn(!lightOn)}
+            >
+              <Text style={{color:"#fff"}}>
+                {lightOn ? "ON" : "OFF"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.roomLabel}>{id}</Text>
+        </View>
+
+        {/* 🪟 FENETRES */}
+        <View style={styles.simpleCard}>
+          <View style={styles.rowBetween}>
+            <Text style={styles.cardTitle}>🪟 Fenêtres</Text>
+
+            <TouchableOpacity
+              style={styles.controlBtn}
+              onPress={() => setWindowOpen(!windowOpen)}
+            >
+              <Text style={{color:"#fff"}}>
+                {windowOpen ? "OPEN" : "CLOSED"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.roomLabel}>{id}</Text>
+        </View>
+
+      </View>
+
+      {/* CHARTS */}
+        <Text style={styles.subtitle}>Température (°C)</Text>
       <LineChart
         data={{
           labels: ["8h", "10h", "12h", "14h", "16h", "18h", "20h"],
@@ -98,7 +165,6 @@ export default function RoomHistory() {
         style={styles.chart}
       />
 
-      {/* 📈 Gaz Graph */}
       <Text style={styles.subtitle}>Gaz (ppm)</Text>
       <LineChart
         data={{
@@ -114,40 +180,152 @@ export default function RoomHistory() {
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#EFEAE6",
-    padding: 20,
+  container:{
+    flex:1,
+    backgroundColor:"#F2EFEC",
+    padding:16
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 20,
+
+  title:{
+    fontSize:22,
+    fontWeight:"600",
+    marginBottom:12
   },
-  subtitle: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginBottom: 10,
+
+  mainCard:{
+    backgroundColor:"#FFFFFF",
+    borderRadius:20,
+    padding:16
   },
-  chart: {
-    borderRadius: 16,
-    marginBottom: 30,
+
+  sectionTitle:{
+    fontWeight:"600",
+    marginBottom:12
   },
-  alertBoxWarning: {
-    backgroundColor: "#FFF3CD",
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 16,
+
+  climatCard:{
+    backgroundColor:"#B89C80",
+    borderRadius:20,
+    padding:16,
+    marginBottom:16
   },
-  alertBoxDanger: {
-    backgroundColor: "#F8D7DA",
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 16,
+
+  subCard:{
+    backgroundColor:"#B89C80",
+    borderRadius:20,
+    padding:16,
+    marginBottom:16
   },
-  alertText: {
-    fontWeight: "600",
-    color: "#333",
+
+  cardTitle:{
+    color:"#fff",
+    fontSize:16,
+    fontWeight:"600"
   },
+
+  rowBetween:{
+    flexDirection:"row",
+    justifyContent:"space-between",
+    alignItems:"center"
+  },
+
+  tempControl:{
+    flexDirection:"row",
+    justifyContent:"center",
+    alignItems:"center",
+    marginVertical:20
+  },
+
+  tempBtn:{
+    fontSize:28,
+    color:"#fff",
+    marginHorizontal:20
+  },
+
+  tempValue:{
+    fontSize:36,
+    fontWeight:"700",
+    color:"#fff"
+  },
+
+  smallText:{
+    color:"#fff"
+  },
+
+  roomRow:{
+    flexDirection:"row",
+    justifyContent:"space-between",
+    marginTop:12,
+    alignItems:"center"
+  },
+
+  windowRow:{
+    flexDirection:"row",
+    justifyContent:"space-between",
+    marginTop:12,
+    alignItems:"center",
+    backgroundColor:"#A88C72",
+    padding:12,
+    borderRadius:14
+  },
+
+  roomText:{
+    color:"#fff",
+    fontSize:16
+  },
+
+  offBtn:{
+    backgroundColor:"#6E5B4A",
+    paddingVertical:6,
+    paddingHorizontal:14,
+    borderRadius:14
+  },
+
+  iconBtn:{
+    backgroundColor:"#6E5B4A",
+    padding:10,
+    borderRadius:12,
+    marginLeft:8
+  },
+
+  link:{
+    color:"#E5E5FF"
+  },
+
+  alertWarning:{
+    backgroundColor:"#F5E3B0",
+    padding:10,
+    borderRadius:14,
+    marginBottom:8
+  },
+
+  alertDanger:{
+    backgroundColor:"#F3C5C5",
+    padding:10,
+    borderRadius:14,
+    marginBottom:8
+  },
+ 
+  simpleCard:{
+    backgroundColor:"#B89C80",
+    borderRadius:20,
+    padding:16,
+    marginBottom:16
+  },
+
+  controlBtn:{
+    backgroundColor:"#6E5B4A",
+    paddingVertical:8,
+    paddingHorizontal:18,
+    borderRadius:20
+  },
+
+  roomLabel:{
+    color:"#fff",
+    marginTop:8,
+    fontSize:14
+},
+
 });
