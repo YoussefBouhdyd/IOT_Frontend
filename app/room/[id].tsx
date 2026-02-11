@@ -7,13 +7,15 @@ import {
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { LineChart } from "react-native-chart-kit";
+import * as Notifications from "expo-notifications";
+import { useEffect } from "react";
 
 const screenWidth = Dimensions.get("window").width;
 
 export default function RoomHistory() {
   const { id } = useLocalSearchParams();
 
-  // 🔹 Mock data (later backend)
+  // 🔹 Mock data
   const temperatureData = [22, 24, 26, 29, 30, 28, 27];
   const gasData = [10, 12, 14, 16, 18, 15, 13];
 
@@ -21,7 +23,7 @@ export default function RoomHistory() {
   const TEMP_THRESHOLD = 28;
   const GAS_THRESHOLD = 15;
 
-  // 🔹 Alerts logic (THIS WAS MISSING ❌)
+  // 🔹 Alerts logic
   const isTempAlert = Math.max(...temperatureData) > TEMP_THRESHOLD;
   const isGasAlert = Math.max(...gasData) > GAS_THRESHOLD;
 
@@ -36,13 +38,37 @@ export default function RoomHistory() {
     labelColor: () => "#777",
   };
 
+  // 🔔 Notifications (INSIDE COMPONENT ✅)
+  useEffect(() => {
+    async function sendNotification(title, body) {
+      await Notifications.scheduleNotificationAsync({
+        content: { title, body },
+        trigger: null,
+      });
+    }
+
+    if (isTempAlert) {
+      sendNotification(
+        "⚠️ Température élevée",
+        "La température a dépassé le seuil dans cette pièce"
+      );
+    }
+
+    if (isGasAlert) {
+      sendNotification(
+        "🚨 Gaz détecté",
+        "Niveau de gaz dangereux détecté dans cette pièce"
+      );
+    }
+  }, []); // once on mount
+
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>
         Historique – {id?.toString().toUpperCase()}
       </Text>
 
-      {/* 🔔 Alerts */}
+      {/* 🔔 Alerts UI */}
       {isTempAlert && (
         <View style={styles.alertBoxWarning}>
           <Text style={styles.alertText}>
@@ -87,52 +113,39 @@ export default function RoomHistory() {
     </ScrollView>
   );
 }
-// const chartConfig = {
-//   backgroundColor: "#fff",
-//   backgroundGradientFrom: "#fff",
-//   backgroundGradientTo: "#fff",
-//   decimalPlaces: 0,
-//   color: () => chartColor,
-//   labelColor: () => "#777",
-// };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#EFEAE6",
     padding: 20,
   },
-
   title: {
     fontSize: 20,
     fontWeight: "600",
     marginBottom: 20,
   },
-
   subtitle: {
     fontSize: 16,
     fontWeight: "500",
     marginBottom: 10,
   },
-
   chart: {
     borderRadius: 16,
     marginBottom: 30,
   },
-
   alertBoxWarning: {
     backgroundColor: "#FFF3CD",
     borderRadius: 16,
     padding: 12,
     marginBottom: 16,
   },
-
   alertBoxDanger: {
     backgroundColor: "#F8D7DA",
     borderRadius: 16,
     padding: 12,
     marginBottom: 16,
   },
-
   alertText: {
     fontWeight: "600",
     color: "#333",
