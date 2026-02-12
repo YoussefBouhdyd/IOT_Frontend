@@ -123,18 +123,10 @@ export default function Dashboard() {
         value={modeNuit}
         onChange={(value) => {
           setModeNuit(value);
-
-          if (value) {
-            sendNotification(
-             "🌙 Mode Nuit activé",
-              "La surveillance nocturne est maintenant active"
-            );
-          } else {
-          sendNotification(
-          "☀️ Mode Nuit désactivé",
-          "Le mode nuit a été désactivé"
-          );
-          }
+          router.push({
+          pathname: "/room/living",
+          params: { modeNuit: value ? "on" : "off" },
+          });
         }}
       />
 

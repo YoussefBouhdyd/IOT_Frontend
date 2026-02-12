@@ -42,34 +42,21 @@ export default function Login() {
       {/* Overlay beige */}
       <View style={styles.overlay} />
 
-      {/* LOGO EN HAUT */}
+      {/* LOGO (plus élégant) */}
       <View style={styles.logoContainer}>
-        <Image
-          source={require("../../assets/images/logo-iot.png")}
-          style={styles.logo}
-        />
+        <View style={styles.logoGlass}>
+          <Image
+            source={require("../../assets/images/logo-iot.png")}
+            style={styles.logo}
+          />
+        </View>
+
+        {/* ✅ On garde seulement le slogan (pas de Welcome, pas de chip) */}
+        <Text style={styles.welcomeSubtitle}>Control • Connect • Innovate</Text>
+        <Text style={styles.welcomeHint}>login to manage your smart home</Text>
       </View>
-      <Text style={styles.welcomeTitle}>
-  Welcome to Innovation of Things
-</Text>
-<Ionicons
-  name="hardware-chip-outline"
-  size={20}
-  color="rgba(255,255,255,0.8)"
-  style={{ marginTop: 10 }}
-/>
 
-
-<Text style={styles.welcomeSubtitle}>
-  Control • Connect • Innovate
-</Text>
-<Text style={styles.welcomeHint}>
-  login  to manage your smart home
-</Text>
-
-
-
-      {/* FORMULAIRE PLUS BAS */}
+      {/* FORMULAIRE */}
       <View style={styles.formWrapper}>
         <View style={styles.card}>
           {/* Email */}
@@ -104,6 +91,7 @@ export default function Login() {
             <TouchableOpacity
               onPress={() => setShowPassword(!showPassword)}
               style={styles.rightIcon}
+              activeOpacity={0.7}
             >
               <Ionicons
                 name={showPassword ? "eye-off-outline" : "eye-outline"}
@@ -135,22 +123,54 @@ const styles = StyleSheet.create({
 
   /* LOGO */
   logoContainer: {
-    marginTop: 80,
+    marginTop: 75,
     alignItems: "center",
   },
 
+  /* ✅ effet “logo élégant” : mini glass container + shadow */
+  // logoGlass: {
+  //   width: 505,
+  //   height: 205,
+  //   borderRadius: 28,
+  //   backgroundColor: "rgba(255,255,255,0.20)",
+  //   borderWidth: 1,
+  //   borderColor: "rgba(255,255,255,0.40)",
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   shadowColor: "#000",
+  //   shadowOpacity: 1.20,
+  //   shadowRadius: 18,
+  //   shadowOffset: { width: 0, height: 10 },
+  //   elevation: 10,
+  // },
+
   logo: {
-    width: 180,
-    height: 180,
+    width: 300,
+    height: 200,
     resizeMode: "contain",
   },
 
-  /* FORM */
- formWrapper: {
-  paddingHorizontal: 22,
-  marginTop: 37,   // 🔼 distance depuis le logo
-},
+  /* TEXT sous logo */
+  welcomeSubtitle: {
+    marginTop: 14,
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.85)",
+    textAlign: "center",
+    letterSpacing: 4.2,
+  },
 
+  welcomeHint: {
+    marginTop: 6,
+    fontSize: 13,
+    color: "rgba(255,255,255,0.7)",
+    textAlign: "center",
+  },
+
+  /* FORM */
+  formWrapper: {
+    paddingHorizontal: 22,
+    marginTop: 100,
+  },
 
   card: {
     backgroundColor: "rgba(255,255,255,0.28)",
@@ -215,29 +235,4 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 1.4,
   },
-welcomeTitle: {
-  marginTop: 18,
-  fontSize: 22,
-  fontWeight: "700",
-  color: "#FFFFFF",
-  textAlign: "center",
-  letterSpacing: 0.6,
-  textShadowColor: "rgba(0,0,0,0.35)",
-  textShadowOffset: { width: 0, height: 3 },
-  textShadowRadius: 6,
-},
-
-welcomeSubtitle: {
-  marginTop: 6,
-  fontSize: 14,
-  color: "rgba(255,255,255,0.85)",
-  textAlign: "center",
-  letterSpacing: 1.2,
-},
-welcomeHint: {
-  marginTop: 14,
-  fontSize: 13,
-  color: "rgba(255,255,255,0.7)",
-  textAlign: "center",
-},
 });
