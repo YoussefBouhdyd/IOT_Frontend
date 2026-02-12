@@ -81,19 +81,19 @@ export default function Dashboard() {
       {/* Rooms */}
       <Text style={styles.sectionTitle}>All Rooms</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <RoomCard id="living" title="Living Room" temp="27°" />
-        <RoomCard id="kitchen" title="Kitchen" temp="26°" />
-        <RoomCard id="bedroom" title="Bedroom" temp="24°" />
+        <RoomCard id="living" title="Living Room" temp="27" humidity="60" />
+        <RoomCard id="kitchen" title="Kitchen" temp="26" humidity="55" />
+        <RoomCard id="bedroom" title="Bedroom" temp="24" humidity="50" />
       </ScrollView>
 
       {/* Devices */}
-      <Text style={styles.sectionTitle}>Devices</Text>
+      {/* <Text style={styles.sectionTitle}>Devices</Text>
       <View style={styles.devicesRow}>
         <Device icon="wifi" label="WiFi" />
         <Device icon="lightbulb" label="Light" />
         <Device icon="thermostat" label="Temp" />
         <Device icon="fan" label="Fan" />
-      </View>
+      </View> */}
 
       {/* Modes */}
       <Text style={styles.sectionTitle}>Modes</Text>
@@ -114,6 +114,7 @@ export default function Dashboard() {
           }
         }}
       />
+
 
       <ModeCard
         type="nuit"
@@ -150,20 +151,28 @@ export default function Dashboard() {
     </ScrollView>
   );
 };
-function RoomCard({ id, title, temp }) {
+function RoomCard({ id, title, temp, humidity }) {
   const router = useRouter();
 
   return (
     <TouchableOpacity
       style={styles.roomCard}
       onPress={() => router.push(`/room/${id}`)}
+      activeOpacity={0.9}
     >
+      {/* Room Name */}
       <Text style={styles.roomTitle}>{title}</Text>
-      <Text style={styles.roomTemp}>{temp}</Text>
 
+      {/* Center Data */}
+      <View style={styles.centerData}>
+        <Text style={styles.roomTemp}>{temp}°</Text>
+        <Text style={styles.roomHumidity}>💧 {humidity}%</Text>
+      </View>
+
+      {/* Bottom Icons */}
       <View style={styles.roomFooter}>
-        <Ionicons name="thermometer" size={18} color="#fff" />
-        <Ionicons name="wifi" size={18} color="#fff" />
+        <Ionicons name="thermometer-outline" size={18} color="#fff" />
+        <Ionicons name="wifi-outline" size={18} color="#fff" />
       </View>
     </TouchableOpacity>
   );
@@ -341,4 +350,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#777",
   },
+  centerData: {
+    alignItems: "left",
+    justifyContent: "center",
+    flex: 1,
+  },
+
+  roomTemp: {
+    fontSize: 38,
+    color: "#fff",
+    fontWeight: "700",
+  },
+
+  roomHumidity: {
+    fontSize: 16,
+    color: "#fff",
+    marginTop: 6,
+  }
 });
