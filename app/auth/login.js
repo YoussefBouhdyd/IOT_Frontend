@@ -13,22 +13,59 @@ import {
   View,
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Login() {
+  const router = useRouter();
+  const { login } = useContext(AuthContext);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const { login } = useContext(AuthContext);
-  const router = useRouter();
+  const handleLogin = async () => {
+  console.log("Login pressed");
 
-  const handleContinue = () => {
-    if (!email) return Alert.alert("Error", "Please enter your email");
-    if (!password) return Alert.alert("Error", "Please enter your password");
+  if (!email || !password) {
+    Alert.alert("Error", "Please enter email and password");
+    return;
+  }
 
-    login(email);
+  try {
+    const response = await fetch("https://backendiotproject-c4gbdtdqcebjb9c9.spaincentral-01.azurewebsites.net/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ "email": email,"password": password }),
+    });
+
+    console.log("Status:", response.status);
+
+    const data = await response.json();
+    console.log("Server response:", data);
+
+    if (!response.ok) {
+      Alert.alert("Login failed", data.message || "Invalid credentials");
+      return;
+    }
+
+    // save token
+    await AsyncStorage.setItem("authToken", data.token);
+    console.log("Token saved:", data.token);
+
+    // update context if you use it
+    if (login) await login(data.token);
+
     router.replace("/(tabs)");
-  };
+
+
+  } catch (error) {
+    console.log("Network error:", error);
+    Alert.alert("Connection error", "Cannot reach server");
+  }
+};
+
 
   return (
     <ImageBackground
@@ -65,7 +102,7 @@ export default function Login() {
               <Ionicons name="mail-outline" size={18} color="#6B4F3A" />
             </View>
             <TextInput
-              placeholder="Email ID"
+              placeholder="Email"
               placeholderTextColor="#8A7D72"
               value={email}
               onChangeText={setEmail}
@@ -102,7 +139,7 @@ export default function Login() {
           </View>
 
           {/* Button */}
-          <TouchableOpacity style={styles.button} onPress={handleContinue}>
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <Text style={styles.buttonText}>LOGIN</Text>
           </TouchableOpacity>
         </View>
@@ -126,23 +163,6 @@ const styles = StyleSheet.create({
     marginTop: 75,
     alignItems: "center",
   },
-
-  /* ✅ effet “logo élégant” : mini glass container + shadow */
-  // logoGlass: {
-  //   width: 505,
-  //   height: 205,
-  //   borderRadius: 28,
-  //   backgroundColor: "rgba(255,255,255,0.20)",
-  //   borderWidth: 1,
-  //   borderColor: "rgba(255,255,255,0.40)",
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  //   shadowColor: "#000",
-  //   shadowOpacity: 1.20,
-  //   shadowRadius: 18,
-  //   shadowOffset: { width: 0, height: 10 },
-  //   elevation: 10,
-  // },
 
   logo: {
     width: 300,

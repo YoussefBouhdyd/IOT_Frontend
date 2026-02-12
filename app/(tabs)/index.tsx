@@ -11,7 +11,7 @@ import { useRouter } from "expo-router";
 import { AuthContext } from "../../context/AuthContext";
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import * as Notifications from "expo-notifications";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -30,10 +30,39 @@ export default function Dashboard() {
   const [modeNormal, setModeNormal] = useState(true);
   const [modeNuit, setModeNuit] = useState(false);
   const [modeEnfants, setModeEnfants] = useState(false);
+  const [temperature, setTemperatureState] = useState("--");
 
   const handleLogout = () => {
     logout();
     router.replace("/auth/login"); 
+  };
+  const loadTemperature = async () => {
+    try {
+      const token = await AsyncStorage.getItem("authToken");
+
+      const response = await fetch(
+        "https://backendiotproject-c4gbdtdqcebjb9c9.spaincentral-01.azurewebsites.net/api/temperature/livingroom",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("GET status:", response.status);
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+      console.log("Temperature data:", data);
+
+      setTemperatureState(parseFloat(data.value).toFixed(1));
+
+    } catch (err) {
+      console.log("Load temp error:", err);
+    }
   };
 
   useEffect(() => {
@@ -44,6 +73,7 @@ export default function Dashboard() {
     }
     }
     requestPermission();
+    loadTemperature();
   }, []);
   const sendNotification = useCallback(async (title, body) => {
     await Notifications.scheduleNotificationAsync({
@@ -67,7 +97,7 @@ export default function Dashboard() {
       {/* Welcome */}
       <View style={styles.welcome}>
         <View>
-          <Text style={styles.temp}>27°</Text>
+          <Text style={styles.temp}>{temperature}°</Text>
           <Text style={styles.subtitle}>Welcome to your Smart Home</Text>
         </View>
         <TouchableOpacity
@@ -81,9 +111,10 @@ export default function Dashboard() {
       {/* Rooms */}
       <Text style={styles.sectionTitle}>All Rooms</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <RoomCard id="living" title="Living Room" temp="27" humidity="60" />
-        <RoomCard id="kitchen" title="Kitchen" temp="26" humidity="55" />
-        <RoomCard id="bedroom" title="Bedroom" temp="24" humidity="50" />
+        <RoomCard id="livingroom" title="Living Room"  />
+        <RoomCard id="kitchen" title="Kitchen"  />
+        <RoomCard id="bedroom" title="Bedroom" />
+        <RoomCard id="toilet" title="Bathroom" />
       </ScrollView>
 
       {/* Devices */}
@@ -151,9 +182,59 @@ export default function Dashboard() {
     </ScrollView>
   );
 };
-function RoomCard({ id, title, temp, humidity }) {
+function RoomCard({ id, title }) {
   const router = useRouter();
+  const [temp, setTemp] = useState("--");
+  const [humidity, setHumidity] = useState("--");
 
+  useEffect(() => {
+    const loadRoomData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("authToken");
+
+        // 🔥 Temperature
+        const tempRes = await fetch(
+          `https://backendiotproject-c4gbdtdqcebjb9c9.spaincentral-01.azurewebsites.net/api/temperature/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (tempRes.ok) {
+          const tempData = await tempRes.json();
+          if (tempData?.value) {
+            setTemp(parseFloat(tempData.value).toFixed(1));
+          }
+        }
+
+        // 💧 Humidity
+        const humRes = await fetch(
+          `https://backendiotproject-c4gbdtdqcebjb9c9.spaincentral-01.azurewebsites.net/api/humidity/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (humRes.ok) {
+          const humData = await humRes.json();
+          if (humData?.value) {
+            setHumidity(parseFloat(humData.value).toFixed(0));
+          }
+        }
+
+      } catch (err) {
+        console.log("Room data error:", err);
+      }
+    };
+
+    loadRoomData();
+  }, [id]);
   return (
     <TouchableOpacity
       style={styles.roomCard}
