@@ -1,8 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
 import { useRouter } from "expo-router";
 import { useContext, useState } from "react";
 import {
   Alert,
+  Image,
   ImageBackground,
   StyleSheet,
   Text,
@@ -22,15 +24,7 @@ export default function Login() {
 
   const handleContinue = () => {
     if (!email) return Alert.alert("Error", "Please enter your email");
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email))
-      return Alert.alert("Invalid email", "Please enter a valid email");
-
     if (!password) return Alert.alert("Error", "Please enter your password");
-
-    if (password.length < 6)
-      return Alert.alert("Weak password", "Password must be at least 6 characters");
 
     login(email);
     router.replace("/(tabs)");
@@ -42,16 +36,29 @@ export default function Login() {
       resizeMode="cover"
       style={styles.bg}
     >
-      {/* Beige overlay for tone */}
+      {/* Blur iOS */}
+      <BlurView intensity={45} tint="light" style={StyleSheet.absoluteFill} />
+
+      {/* Overlay beige */}
       <View style={styles.overlay} />
 
-      <View style={styles.center}>
-        <View style={styles.card}>
-          {/* Avatar */}
-          <View style={styles.avatar}>
-            <Ionicons name="person-outline" size={26} color="#fff" />
-          </View>
+      {/* LOGO (plus élégant) */}
+      <View style={styles.logoContainer}>
+        <View style={styles.logoGlass}>
+          <Image
+            source={require("../../assets/images/logo-iot.png")}
+            style={styles.logo}
+          />
+        </View>
 
+        {/* ✅ On garde seulement le slogan (pas de Welcome, pas de chip) */}
+        <Text style={styles.welcomeSubtitle}>Control • Connect • Innovate</Text>
+        <Text style={styles.welcomeHint}>login to manage your smart home</Text>
+      </View>
+
+      {/* FORMULAIRE */}
+      <View style={styles.formWrapper}>
+        <View style={styles.card}>
           {/* Email */}
           <View style={styles.inputRow}>
             <View style={styles.leftIcon}>
@@ -84,6 +91,7 @@ export default function Login() {
             <TouchableOpacity
               onPress={() => setShowPassword(!showPassword)}
               style={styles.rightIcon}
+              activeOpacity={0.7}
             >
               <Ionicons
                 name={showPassword ? "eye-off-outline" : "eye-outline"}
@@ -110,92 +118,114 @@ const styles = StyleSheet.create({
 
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(239, 234, 230, 0.35)", // beige filter
+    backgroundColor: "rgba(239,234,230,0.25)",
   },
 
-  center: {
-    flex: 1,
-    justifyContent: "center",
+  /* LOGO */
+  logoContainer: {
+    marginTop: 75,
     alignItems: "center",
-    paddingHorizontal: 22,
   },
 
-  // Glass card
+  /* ✅ effet “logo élégant” : mini glass container + shadow */
+  // logoGlass: {
+  //   width: 505,
+  //   height: 205,
+  //   borderRadius: 28,
+  //   backgroundColor: "rgba(255,255,255,0.20)",
+  //   borderWidth: 1,
+  //   borderColor: "rgba(255,255,255,0.40)",
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   shadowColor: "#000",
+  //   shadowOpacity: 1.20,
+  //   shadowRadius: 18,
+  //   shadowOffset: { width: 0, height: 10 },
+  //   elevation: 10,
+  // },
+
+  logo: {
+    width: 300,
+    height: 200,
+    resizeMode: "contain",
+  },
+
+  /* TEXT sous logo */
+  welcomeSubtitle: {
+    marginTop: 14,
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.85)",
+    textAlign: "center",
+    letterSpacing: 4.2,
+  },
+
+  welcomeHint: {
+    marginTop: 6,
+    fontSize: 13,
+    color: "rgba(255,255,255,0.7)",
+    textAlign: "center",
+  },
+
+  /* FORM */
+  formWrapper: {
+    paddingHorizontal: 22,
+    marginTop: 100,
+  },
+
   card: {
-    width: "100%",
-    maxWidth: 360,
     backgroundColor: "rgba(255,255,255,0.28)",
-    borderRadius: 24,
-    paddingTop: 36,
-    paddingHorizontal: 18,
-    paddingBottom: 18,
+    borderRadius: 26,
+    padding: 18,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.45)",
     shadowColor: "#000",
-    shadowOpacity: 0.2,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 10,
-  },
-
-  avatar: {
-    position: "absolute",
-    top: -26,
-    alignSelf: "center",
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: "#6B4F3A",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.7)",
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 12,
   },
 
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.65)",
-    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.7)",
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "rgba(217, 207, 196, 0.9)",
-    marginTop: 12,
-    overflow: "hidden",
+    borderColor: "rgba(217,207,196,0.9)",
+    marginTop: 14,
   },
 
   leftIcon: {
-    width: 44,
-    height: 46,
+    width: 46,
+    height: 48,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(200, 162, 124, 0.18)",
     borderRightWidth: 1,
-    borderRightColor: "rgba(130, 105, 85, 0.20)",
+    borderRightColor: "rgba(130,105,85,0.2)",
   },
 
   rightIcon: {
-    width: 44,
-    height: 46,
+    width: 46,
+    height: 48,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(200, 162, 124, 0.14)",
     borderLeftWidth: 1,
-    borderLeftColor: "rgba(130, 105, 85, 0.18)",
+    borderLeftColor: "rgba(130,105,85,0.2)",
   },
 
   input: {
     flex: 1,
-    height: 46,
+    height: 48,
     paddingHorizontal: 12,
     color: "#2A2018",
     fontSize: 15,
   },
 
   button: {
-    marginTop: 18,
+    marginTop: 22,
     backgroundColor: "#6B4F3A",
-    height: 48,
-    borderRadius: 12,
+    height: 50,
+    borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -203,6 +233,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#F6F1EC",
     fontWeight: "700",
-    letterSpacing: 1.2,
+    letterSpacing: 1.4,
   },
 });
