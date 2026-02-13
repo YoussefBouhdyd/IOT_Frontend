@@ -117,15 +117,7 @@ export default function Dashboard() {
         <RoomCard id="toilet" title="Bathroom" />
       </ScrollView>
 
-      {/* Devices */}
-      {/* <Text style={styles.sectionTitle}>Devices</Text>
-      <View style={styles.devicesRow}>
-        <Device icon="wifi" label="WiFi" />
-        <Device icon="lightbulb" label="Light" />
-        <Device icon="thermostat" label="Temp" />
-        <Device icon="fan" label="Fan" />
-      </View> */}
-
+  
       {/* Modes */}
       <Text style={styles.sectionTitle}>Modes</Text>
 

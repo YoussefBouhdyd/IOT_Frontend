@@ -51,7 +51,7 @@ export default function RoomHistory() {
   useEffect(() => {
     if (isNightMode) {
       setLightOn(false);
-    } else {
+    } else {   
       setLightOn(true);
     }
   }, [isNightMode]);
@@ -109,7 +109,7 @@ export default function RoomHistory() {
       console.log("TOKEN USED:", token);
 
       const response = await fetch(
-        `https://backendiotproject-c4gbdtdqcebjb9c9.spaincentral-01.azurewebsites.net/api/temperature/${id}/graph`,
+        `https://backendiotproject-c4gbdtdqcebjb9c9.spaincentral-01.azurewebsites.net/api/temperature/livingroom/graph`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
