@@ -11,6 +11,7 @@ import { useLocalSearchParams } from "expo-router";
 import { LineChart } from "react-native-chart-kit";
 import * as Notifications from "expo-notifications";
 import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -18,21 +19,22 @@ export default function RoomHistory() {
   const { id, modeNuit } = useLocalSearchParams();
   const isNightMode = modeNuit === "on";
 
-  const temperatureData = [22, 24, 26, 29, 30, 28, 27];
-  const gasData = [10, 12, 14, 16, 18, 15, 13];
-
   const TEMP_THRESHOLD = 28;
   const GAS_THRESHOLD = 15;
 
-  const isTempAlert = Math.max(...temperatureData) > TEMP_THRESHOLD;
-  const isGasAlert = Math.max(...gasData) > GAS_THRESHOLD;
-
   const [climOn, setClimOn] = useState(false);
+  const [temperatureData, setTemperatureData] = useState([]);
+  const [humidityData, setHumidityData] = useState([]);
+  const [labels, setLabels] = useState([]);
   const [lightOn, setLightOn] = useState(true);
   const [windowOpen, setWindowOpen] = useState(false);
   const [targetTemp, setTargetTemp] = useState(22);
   const currentTemp = 18;
 
+  const isTempAlert =
+    temperatureData.length > 0 &&
+    Math.max(...temperatureData) > TEMP_THRESHOLD;
+    
   const sendNotification = async (title: string, body: string) => {
     await Notifications.scheduleNotificationAsync({
       content: { title, body },
@@ -41,9 +43,10 @@ export default function RoomHistory() {
   };
 
   useEffect(() => {
-    if (isTempAlert) setClimOn(true);
-    if (isGasAlert) setWindowOpen(true);
-  }, []);
+    if (isTempAlert) {
+      setClimOn(true);
+    }
+  }, [isTempAlert]);
 
   useEffect(() => {
     if (isNightMode) {
@@ -52,6 +55,78 @@ export default function RoomHistory() {
       setLightOn(true);
     }
   }, [isNightMode]);
+
+  useEffect(() => {
+    const loadTemperatureGraph = async () => {
+      try {
+        const token = await AsyncStorage.getItem("authToken");
+
+        const response = await fetch(
+          `https://backendiotproject-c4gbdtdqcebjb9c9.spaincentral-01.azurewebsites.net/api/temperature/${id}/graph?minutes=60`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+        console.log("Graph response:", data);
+
+        if (!data?.points || data.points.length === 0) {
+          setTemperatureData([]);
+          return;
+        }
+
+        const values = data.points.map(p => p.value);
+        const timeLabels = data.points.map(p =>
+          p.timestamp.slice(11, 16)
+        );
+
+        setTemperatureData(values);
+        setLabels(timeLabels);
+
+      } catch (err) {
+        console.log("Graph load error:", err);
+      }
+    };
+
+    loadTemperatureGraph();
+  }, [id]);
+
+  useEffect(() => {
+    const loadHumidityGraph = async () => {
+      try {
+        const token = await AsyncStorage.getItem("authToken");
+
+        const response = await fetch(
+          `https://backendiotproject-c4gbdtdqcebjb9c9.spaincentral-01.azurewebsites.net/api/humidity/${id}/graph?minutes=60`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await response.json();
+        console.log("Humidity graph:", data);
+
+        if (!data?.points || data.points.length === 0) {
+          setHumidityData([]);
+          return;
+        }
+
+        const values = data.points.map(p => p.value);
+        setHumidityData(values);
+
+      } catch (err) {
+        console.log("Humidity load error:", err);
+      }
+    };
+
+    loadHumidityGraph();
+  }, [id]);
+
 
   const chartConfig = {
     backgroundColor: "#fff",
@@ -72,11 +147,11 @@ export default function RoomHistory() {
         </View>
       )}
 
-      {isGasAlert && (
+      {/* {isGasAlert && (
         <View style={styles.alertDanger}>
           <Text>🚨 Niveau de gaz dangereux détecté</Text>
         </View>
-      )}
+      )} */}
 
       <View style={styles.mainCard}>
 
@@ -153,10 +228,10 @@ export default function RoomHistory() {
       </View>
 
       {/* CHARTS */}
-        <Text style={styles.subtitle}>Température (°C)</Text>
+      <Text style={styles.subtitle}>Température (°C)</Text>
       <LineChart
         data={{
-          labels: ["8h", "10h", "12h", "14h", "16h", "18h", "20h"],
+          labels: labels,
           datasets: [{ data: temperatureData }],
         }}
         width={screenWidth - 40}
@@ -165,11 +240,11 @@ export default function RoomHistory() {
         style={styles.chart}
       />
 
-      <Text style={styles.subtitle}>Gaz (ppm)</Text>
+      <Text style={styles.subtitle}>Humidité (%)</Text>
       <LineChart
         data={{
-          labels: ["8h", "10h", "12h", "14h", "16h", "18h", "20h"],
-          datasets: [{ data: gasData }],
+          labels: labels,
+          datasets: [{ data: humidityData }],
         }}
         width={screenWidth - 40}
         height={220}
