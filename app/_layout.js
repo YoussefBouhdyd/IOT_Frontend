@@ -1,10 +1,11 @@
 import { Stack } from "expo-router";
 import { AuthProvider } from "../context/AuthContext";
-import { ThemeProvider } from "../context/ThemeContext";
+// import { ThemeProvider } from "../context/ThemeContext";
 
 export default function Layout() {
   return (
     <AuthProvider>
+
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="auth/login" />
@@ -14,10 +15,19 @@ export default function Layout() {
   );
 }
 
-export default function RootLayout() {
-  return (
-    <ThemeProvider>
-      <Stack screenOptions={{ headerShown: false }} />
-    </ThemeProvider>
-  );
-}
+// export default function RootLayout() {
+//   return (
+//     <ThemeProvider>
+//       <Stack screenOptions={{ headerShown: false }} />
+//     </ThemeProvider>
+//   );
+// }
+// export default function RootLayout() {
+//   return (
+//     <ThemeProvider>
+//       <AuthProvider>
+//         <Stack screenOptions={{ headerShown: false }} />
+//       </AuthProvider>
+//     </ThemeProvider>
+//   );
+// }
