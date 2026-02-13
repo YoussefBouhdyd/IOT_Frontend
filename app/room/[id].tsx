@@ -147,12 +147,6 @@ export default function RoomHistory() {
         </View>
       )}
 
-      {/* {isGasAlert && (
-        <View style={styles.alertDanger}>
-          <Text>🚨 Niveau de gaz dangereux détecté</Text>
-        </View>
-      )} */}
-
       <View style={styles.mainCard}>
 
         <Text style={styles.sectionTitle}>
