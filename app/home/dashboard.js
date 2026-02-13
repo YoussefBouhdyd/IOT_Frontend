@@ -1,10 +1,12 @@
-import { View, Text, Switch } from "react-native";
+import { useRouter } from "expo-router";
 import { useState } from "react";
+import { Switch, Text, View } from "react-native";
 
 export default function Dashboard() {
   const [modeNormal, setModeNormal] = useState(true);
   const [modeNuit, setModeNuit] = useState(false);
   const [modeEnfants, setModeEnfants] = useState(false);
+  const router = useRouter();
 
   return (
     <View style={{ flex: 1, padding: 20 }}>
@@ -23,6 +25,9 @@ export default function Dashboard() {
 
       {/* Modes */}
       <Text style={{ fontSize: 18, marginBottom: 10 }}>Modes</Text>
+       <Text onPress={() => router.push("/history")}>
+          🕒 Historique
+        </Text>
 
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <Text>Mode Normal</Text>
