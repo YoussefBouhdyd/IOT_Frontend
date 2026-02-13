@@ -57,96 +57,90 @@ export default function RoomHistory() {
   }, [isNightMode]);
 
   useEffect(() => {
-  const loadTemperatureGraph = async () => {
-    try {
-      const token = await AsyncStorage.getItem("authToken");
-      console.log("TOKEN USED:", token);
+    const loadTemperatureGraph = async () => {
+      try {
+        const token = await AsyncStorage.getItem("authToken");
+        console.log("TOKEN USED:", token);
 
-      const response = await fetch(
-        `https://backendiotproject-c4gbdtdqcebjb9c9.spaincentral-01.azurewebsites.net/api/temperature/${id}/graph?minutes=60`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await fetch(
+          `https://backendiotproject-c4gbdtdqcebjb9c9.spaincentral-01.azurewebsites.net/api/temperature/${id}/graph?minutes=60`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log("TEMP GRAPH STATUS:", response.status);
+
+        if (!response.ok) {
+          console.log("Temperature request failed");
+          return;
         }
-      );
 
-      console.log("TEMP GRAPH STATUS:", response.status);
+        const data = await response.json();
+        console.log("Temperature graph:", data);
 
-      if (!response.ok) {
-        console.log("Temperature request failed");
-        return;
+        if (!data?.points?.length) {
+          setTemperatureData([]);
+          return;
+        }
+
+        const values = data.points.map(p => Number(p.value));
+        const timeLabels = data.points.map(p =>
+          p.timestamp.slice(11, 16)
+        );
+
+        setTemperatureData(values);
+        setLabels(timeLabels);
+
+      } catch (err) {
+        console.log("Temperature graph error:", err);
       }
+    };
 
-      const data = await response.json();
-      console.log("Temperature graph:", data);
-
-      if (!data?.points?.length) {
-        setTemperatureData([]);
-        return;
-      }
-
-      const values = data.points.map(p => Number(p.value));
-      const timeLabels = data.points.map(p =>
-        p.timestamp.slice(11, 16)
-      );
-
-      setTemperatureData(values);
-      setLabels(timeLabels);
-
-    } catch (err) {
-      console.log("Temperature graph error:", err);
-    }
-  };
-
-  loadTemperatureGraph();
-}, [id]);
+    loadTemperatureGraph();
+  }, [id]);
 
   useEffect(() => {
-  const loadTemperatureGraph = async () => {
-    try {
-      const token = await AsyncStorage.getItem("authToken");
-      console.log("TOKEN USED:", token);
+    const loadHumidityGraph = async () => {
+      try {
+        const token = await AsyncStorage.getItem("authToken");
 
-      const response = await fetch(
-        `https://backendiotproject-c4gbdtdqcebjb9c9.spaincentral-01.azurewebsites.net/api/temperature/livingroom/graph`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await fetch(
+          `https://backendiotproject-c4gbdtdqcebjb9c9.spaincentral-01.azurewebsites.net/api/humidity/${id}/graph?minutes=60`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log("HUM GRAPH STATUS:", response.status);
+
+        if (!response.ok) {
+          console.log("Humidity request failed");
+          return;
         }
-      );
-      console.log(response);
-      console.log("TEMP GRAPH STATUS:", response.status);
 
-      if (!response.ok) {
-        console.log("Temperature request failed");
-        return;
+        const data = await response.json();
+        console.log("Humidity graph:", data);
+
+        if (!data?.points?.length) {
+          setHumidityData([]);
+          return;
+        }
+
+        const values = data.points.map(p => Number(p.value));
+        setHumidityData(values);
+
+      } catch (err) {
+        console.log("Humidity graph error:", err);
       }
+    };
 
-      const data = await response.json();
-      console.log("Temperature graph:", data);
-
-      if (!data?.points?.length) {
-        setTemperatureData([]);
-        return;
-      }
-
-      const values = data.points.map(p => Number(p.value));
-      const timeLabels = data.points.map(p =>
-        p.timestamp.slice(11, 16)
-      );
-
-      setTemperatureData(values);
-      setLabels(timeLabels);
-
-    } catch (err) {
-      console.log("Temperature graph error:", err);
-    }
-  };
-
-  loadTemperatureGraph();
-}, [id]);
+    loadHumidityGraph();
+  }, [id]);
 
 
   const chartConfig = {
